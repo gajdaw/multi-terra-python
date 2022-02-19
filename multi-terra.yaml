@@ -1,0 +1,17 @@
+command:
+  - 'terragrunt'
+  - 'plan'
+  - '-lock=false'
+
+include:
+  - '^terragrunt.hcl$'
+
+exclude:
+  - 'terragrunt-cache'
+
+synchronized:
+  - 'Your infrastructure matches the configuration'
+
+not_synchronized:
+  - 'Objects have changed outside of Terraform'
+  - 'Terraform will perform the following actions'
