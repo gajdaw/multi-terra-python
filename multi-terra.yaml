@@ -1,7 +1,4 @@
-command:
-  - 'terragrunt'
-  - 'plan'
-  - '-lock=false'
+command: 'terragrunt plan -lock=false'
 
 include:
   - '^terragrunt.hcl$'
