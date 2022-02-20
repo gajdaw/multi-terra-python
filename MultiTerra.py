@@ -34,7 +34,10 @@ class MultiTerra(object):
 
     def run(self, dir: str = '.', base_dir: str = '', verbose: bool = True):
         self._find_dirs(dir, base_dir, verbose)
-        for dir in self._dirs:
+        self._run(self._dirs, verbose)
+
+    def _run(self, dirs, verbose: bool = True):
+        for dir in dirs:
             self.__run_command__(self._config['command'], dir, verbose)
 
     def _is_included(self, dir: str):
