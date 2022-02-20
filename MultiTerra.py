@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import asyncio
 import os
 import pathlib
 import pprint
@@ -32,14 +33,6 @@ class MultiTerra(object):
                             self._dirs.append(x)
         self._dirs.sort()
 
-    def run(self, dir: str = '.', base_dir: str = '', verbose: bool = True):
-        self._find_dirs(dir, base_dir, verbose)
-        self._run(self._dirs, verbose)
-
-    def _run(self, dirs, verbose: bool = True):
-        for dir in dirs:
-            self.__run_command__(self._config['command'], dir, verbose)
-
     def _is_included(self, dir: str):
         for regexp in self._config['include']:
             if (re.match(regexp, dir)):
@@ -52,12 +45,60 @@ class MultiTerra(object):
                 return True
         return False
 
-    def __run_command__(self, command, dir, verbose: bool = True):
+    def plan(self, dir: str = '.', base_dir: str = '', verbose: bool = True):
+        asyncio.run(self._concurrent_run(dir, base_dir, verbose))
+
+    async def _concurrent_run(self, dir: str = '.', base_dir: str = '', verbose: bool = True):
+        self._find_dirs(dir, base_dir, verbose)
+
+        dissected = self._dissect(self._dirs, 12)
+
+        await asyncio.gather(
+            self._run(dissected[0], verbose),
+            self._run(dissected[1], verbose),
+            self._run(dissected[2], verbose),
+            self._run(dissected[3], verbose),
+            self._run(dissected[4], verbose),
+            self._run(dissected[5], verbose),
+            self._run(dissected[6], verbose),
+            self._run(dissected[7], verbose),
+            self._run(dissected[8], verbose),
+            self._run(dissected[9], verbose),
+            self._run(dissected[10], verbose),
+            self._run(dissected[11], verbose)
+        )
+
+    def _dissect(self, a, number):
+        result = []
+
+        for i in range(0, number):
+            result.append([])
+
+        for index, value in enumerate(a):
+            a_index = index % number
+            result[a_index].append(a[index])
+
+        return result
+
+    async def _run(self, dirs, verbose: bool = True):
+        for dir in dirs:
+            await self._run_command(self._config['command'], dir, verbose)
+
+    async def _run_command(self, command, dir, verbose: bool = True):
         if (verbose):
             print(f"ST: {dir}")
-        process = subprocess.run(command, cwd=dir, capture_output=True, text=True)
-        is_synchronized = self._verify_output(process.stdout)
-        if (is_synchronized > 0 or process.returncode > 0):
+
+        proc = await asyncio.create_subprocess_shell(
+            command,
+            cwd=dir,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+
+        stdout, stderr = await proc.communicate()
+
+        is_synchronized = self._verify_output(stdout.decode())
+        if (is_synchronized > 0 or proc.returncode > 0):
             print('ER: ' + dir)
         else:
             if (verbose):

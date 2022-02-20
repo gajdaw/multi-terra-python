@@ -33,4 +33,4 @@ I assume that `~/bin` directory is included in your `PATH`.
 
     mterra
     mterra find
-    mterra run
+    mterra plan
