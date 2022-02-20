@@ -18,12 +18,11 @@ class MultiTerra(object):
         with open(filename, "r") as stream:
             self._config = yaml.safe_load(stream)
 
-    def find(self, dir: str = '.', base_dir: str = '', verbose: bool = True):
-        self._find_dirs(dir, base_dir, verbose)
-        if verbose:
-            pprint.pprint(self._dirs)
+    def find(self, dir: str = '.', base_dir: str = ''):
+        self._find_dirs(dir, base_dir)
+        pprint.pprint(self._dirs)
 
-    def _find_dirs(self, dir: str = '.', base_dir: str = '', verbose: bool = True):
+    def _find_dirs(self, dir: str = '.', base_dir: str = ''):
         for root, subdirs, files in os.walk(dir):
             if not root == dir:
                 if not self._is_excluded(root):
@@ -45,11 +44,11 @@ class MultiTerra(object):
                 return True
         return False
 
-    def plan(self, dir: str = '.', base_dir: str = '', verbose: bool = True):
+    def plan(self, dir: str = '.', base_dir: str = '', verbose: bool = False):
         asyncio.run(self._concurrent_run(dir, base_dir, verbose))
 
-    async def _concurrent_run(self, dir: str = '.', base_dir: str = '', verbose: bool = True):
-        self._find_dirs(dir, base_dir, verbose)
+    async def _concurrent_run(self, dir: str = '.', base_dir: str = '', verbose: bool = False):
+        self._find_dirs(dir, base_dir)
 
         dissected = self._dissect(self._dirs, 12)
 
